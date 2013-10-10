@@ -1,0 +1,27 @@
+{
+  "name": "graff",
+  "version": "0.0.1",
+  "description": "A javascript graph theory library.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kybernetikos/graff.git"
+  },
+  "dependencies": {
+    "topiary": "0.0.1",
+    "springy": "git://github.com/dhotson/springy.git"
+  },
+  "devDependencies": {
+    "jsdoc3": "git://github.com/jsdoc3/jsdoc.git",
+    "jasmine-node": "1.11.x",
+    "browserify": "2.x",
+    "beefy": "0.4.4"
+  },
+  "main": "./lib/main.js",
+  "scripts": {
+    "test": "jasmine-node --verbose specs",
+    "start": "beefy .:target/graff.js -- -s graff",
+    "doc": "jsdoc lib -d doc",
+    "prepublish": "browserify -s graff . -o target/graff.js"
+  }
+}
