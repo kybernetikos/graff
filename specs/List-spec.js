@@ -79,16 +79,10 @@ describe("List", function() {
 		x.mergeDestructive(y);
 
 		expect(x.length).toBe(6);
-		expect(y.length).toBe(6);
 
 		var xResult = x.toArray();
-		var yResult = y.toArray();
 		expect(xResult.length).toBe(6);
 		expect(xResult[0]).toBe("a");
 		expect(xResult[3]).toBe("d");
-
-		expect(yResult.length).toBe(6);
-		expect(yResult[0]).toBe("a");
-		expect(yResult[3]).toBe("d");
 	});
 });

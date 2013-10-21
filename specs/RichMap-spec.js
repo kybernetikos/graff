@@ -1,4 +1,4 @@
-describe("RichMap", function() {
+\describe("RichMap", function() {
 
 	var RichMap = require('../lib/datastructures/RichMap');
 
@@ -46,7 +46,6 @@ describe("RichMap", function() {
 			r.get("c");
 
 			var mapped = r.map(function(value, key) {
-				console.log(key, "=", value);
 				return value * 2;
 			});
 

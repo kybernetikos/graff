@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<meta charset="utf-8">
+</head>
+<body>
+<script src="../target/graff.js"></script>
+<script>
+	var graff = require('graff'), Springy = require('springy');
+</script>
+<script src="canvas-render.js"></script>
+
+<canvas id="springydemo" width="640" height="480" style='border: 1px solid black;'/>
+
+<script>
+	var a = new graff.SimpleGraph();
+	a.addEdge("a", "b", 4);
+	a.addEdge("b", "c", 4);
+	a.addEdge("c", "a", 4);
+	a.addEdge("x", "b", 10);
+	a.addEdge("b", "y", 10);
+	a.addEdge("y", "x", 10);
+	a.addEdge("c", "1", 4);
+	a.addEdge("1", "2", 4);
+	a.addEdge("2", "3", 10);
+	a.addEdge("3", "2", 10);
+
+	var sg = a.springy();
+	var display = document.getElementById('springydemo');
+	renderGraph(display, sg);
+</script>
+</body>
+</html>
