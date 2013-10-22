@@ -1173,7 +1173,6 @@ BaseGraph.prototype.traverseDepthFirst = function(onDiscovery, onExplored, onUne
 	onExplored = onExplored || NOOP;
 	onUnexploredLoop = onUnexploredLoop || NOOP;
 	onExploredLoop = onExploredLoop || NOOP;
-
 	var graph = this;
 	var vertexData = new Map(function()  {return {};});
 	var discovered = new Set();
@@ -1185,7 +1184,8 @@ BaseGraph.prototype.traverseDepthFirst = function(onDiscovery, onExplored, onUne
 		onDiscovery.call(vertexData.get(v), v, stack, vertexData);
 		stack.push(v);
 
-		graph.neighbours(v).forEach(function(neighbouringVertex) {
+		graph.edgesFrom(v).forEach(function(edge) {
+			var neighbouringVertex = graph.target(edge);
 			if (discovered.has(neighbouringVertex) === false) {
 				discover(neighbouringVertex);
 			} else if (explored.has(neighbouringVertex)) {

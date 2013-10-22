@@ -36,10 +36,14 @@
 	a.addEdge("one", "two", 4);
 	a.addEdge("two", "three", 10);
 	a.addEdge("three", "two", 10);
+	a.addEdge("one", "bing", 4);
+	a.addEdge("bing", "two", 4);
 
 	var sg = a.springy();
 	var display = document.getElementById('springydemo');
 	renderGraph(display, sg);
+
+	console.log(a.stronglyConnected().map(graff.Utils.call("toString")));
 
 	function removeCycleLinks() {
 		var components = a.stronglyConnected();
@@ -70,12 +74,16 @@
 				a.edgesTo(vertex).forEach(function(edge) {
 					var source = a.source(edge);
 					var weight = a.weight(edge);
-					a.addEdge(source, groupVertex, weight);
+					if (vertexes.has(source) == false) {
+						a.addEdge(source, groupVertex, weight);
+					}
 				});
 				a.edgesFrom(vertex).forEach(function(edge) {
 					var target = a.target(edge);
 					var weight = a.weight(edge);
-					a.addEdge(groupVertex, target, weight);
+					if (vertexes.has(target) == false) {
+						a.addEdge(groupVertex, target, weight);
+					}
 				});
 				a.removeVertex(vertex);
 			});
