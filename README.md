@@ -10,3 +10,8 @@ graff
 =====
 
 Javascript Graph Theory
+
+ * [source](https://github.com/kybernetikos/graff)
+ * [demo](http://kybernetikos.github.io/graff)
+ * [specs](http://kybernetikos.github.io/graff/specs)
+
