@@ -1,6 +1,7 @@
-\describe("RichMap", function() {
-
-	var RichMap = require('../lib/datastructures/RichMap');
+describe("RichMap", function() {
+	var global = Function('return this')();
+	var graff = global.graff || require('..');
+	var RichMap = graff.Map;
 
 	describe("reduce", function() {
 		it('operates like an array reduce.', function() {

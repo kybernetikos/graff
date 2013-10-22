@@ -1,6 +1,9 @@
-var List = require('../lib/datastructures/LinkedList');
 
 describe("List", function() {
+	var global = Function('return this')();
+	var graff = global.graff || require('..');
+	var List = graff.LinkedList;
+
 	it('supports forEach', function() {
 		var x = new List(10, 4, 8);
 		var result = [];

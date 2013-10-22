@@ -1,6 +1,356 @@
 require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 "use strict";
 
+var NO_VALUE_YET = {};
+
+function id(x) {return x;}
+
+function Node(value, previous, next) {
+	this.value = value;
+	this.previous = previous || this;
+	this.next = next || this;
+}
+
+
+function List() {
+	this.length = 0;
+	this.data = new Node(undefined);
+	this.push.apply(this, arguments);
+}
+
+List.fromArray = function(array) {
+	var result = new List();
+	return result.concat(array);
+};
+
+List.prototype.push = function(value) {
+	for (var i = 0; i < arguments.length; ++i) {
+		var newNode = new Node(arguments[i], this.data.previous, this.data);
+		this.data.previous.next = newNode;
+		this.data.previous = newNode;
+		this.length++;
+	}
+	return this.length;
+};
+
+/** set add - actually add-if-not-already-in*/
+List.prototype.add = function(value) {
+	if (this.has(value) === false) {
+		this.push(value);
+	}
+};
+
+List.prototype.forEach = function(func, scope) {
+	var current = this.data.next;
+	while (current !== this.data) {
+		func.call(scope, current.value);
+		current = current.next;
+	}
+};
+
+List.prototype.map = function(func, scope) {
+	scope = scope;
+	var result = new List();
+	var current = this.data.next;
+	var index = 0;
+	while (current !== this.data) {
+		result.push(func.call(scope, current.value, index++, this));
+		current = current.next;
+	}
+	return result;
+};
+
+List.prototype.mergeDestructive = function(list) {
+	// link the end of our list with the beginning of theirs
+	this.data.previous.next = list.data.next;
+	// reverse link the beginning of their list to the end of ours
+	list.data.next.previous = this.data.previous;
+	// link the end of their list with our stopper
+	list.data.previous.next = this.data;
+	// reverse link our stopper with the end of their list
+	this.data.previous = list.data.previous;
+	// update the length.
+	this.length += list.length;
+
+	list.clear();
+};
+
+List.prototype.insertListDestructive = function(position, list) {
+	var nodeBeforeInsertion = getIndexNode(this, position - 1);
+
+	list.data.previous.next = nodeBeforeInsertion.next;
+	nodeBeforeInsertion.next.previous = list.data.previous;
+
+	nodeBeforeInsertion.next = list.data.next;
+	list.data.next.previous = nodeBeforeInsertion;
+
+	this.length += list.length;
+
+	list.clear();
+};
+
+List.prototype.clear = function() {
+	this.length = 0;
+	this.data = new Node(undefined);
+};
+
+List.prototype.concat = function() {
+	var result = this.map(id);
+
+	for (var i = 0; i < arguments.length; ++i) {
+		var valueToConcat = arguments[i];
+		if (typeof valueToConcat.forEach === 'function') {
+			valueToConcat.forEach(function(value) {
+				result.push(value);
+			});
+		} else {
+			result.push(valueToConcat);
+		}
+	}
+	return result;
+};
+
+List.prototype.every = function(fn, scope) {
+	var current = this.data.next;
+	var index = 0;
+	while (current !== this.data) {
+		if (fn.call(scope, current.value, index++, this) !== true) {
+			return false;
+		}
+		current = current.next;
+	}
+	return true;
+};
+
+List.prototype.some = function(fn, scope) {
+	var current = this.data.next;
+	var index = 0;
+	while (current !== this.data) {
+		if (fn.call(scope, current.value, index++, this) !== false) {
+			return true;
+		}
+		current = current.next;
+	}
+	return false;
+};
+
+List.prototype.filter = function(fn, scope) {
+	var result = new List();
+
+	var current = this.data.next;
+	var index = 0;
+	while (current !== this.data) {
+		if (fn.call(scope, current.value, index++, this) === true) {
+			result.push(current.value);
+		}
+		current = current.next;
+	}
+	return false;
+};
+
+function getIndexNode(list, searchIndex) {
+	var index = 0;
+	var current = list.data.next;
+	while (index < searchIndex && current !== list.data) {
+		current = current.next;
+		index++;
+	}
+	return current;
+}
+
+List.prototype.indexOf = function(searchItem, fromIndex) {
+	fromIndex = fromIndex || 0;
+	var current = getIndexNode(this, fromIndex);
+	var index = fromIndex;
+	while (current !== this.data) {
+		if (current.value === searchItem) {
+			return index;
+		}
+		index++;
+		current = current.next;
+	}
+	return -1;
+};
+
+List.prototype.has = function(value) {
+	return this.indexOf(value) >= 0;
+};
+
+List.prototype.join = function(separator) {
+	return this.toArray().join(separator);
+};
+
+List.prototype.toArray = function() {
+	var result = [];
+	this.forEach(function(value) {
+		result.push(value);
+	});
+	return result;
+};
+
+List.prototype.allValues = List.prototype.toArray;
+
+List.prototype.lastIndexOf = function(searchItem, fromIndex) {
+	fromIndex = fromIndex == null ? this.length - 1 : Math.min(fromIndex, this.length - 1);
+	var current = getIndexNode(this, fromIndex);
+	var index = fromIndex;
+	while (current !== this.data) {
+		if (current.value === searchItem) {
+			return index;
+		}
+		index--;
+		current = current.previous;
+	}
+	return -1;
+};
+
+List.prototype.pop = function() {
+	var node = this.data.previous;
+	if (node === this.data) {
+		return undefined;
+	}
+	this.data.previous = node.previous;
+	node.previous.next = this.data;
+	this.length--;
+	return node.value;
+};
+
+List.prototype.reduce = function(fn, initalValue) {
+	var currentValue = NO_VALUE_YET;
+	if (arguments.length > 1) {
+		currentValue = initialValue;
+	}
+	var current = this.data.next;
+	var index = 0;
+	while (current !== this.data) {
+		if (currentValue === NO_VALUE_YET) {
+			currentValue = current.value;
+		} else {
+			currentValue = fn(currentValue, current.value, index, this);
+		}
+		current = current.next;
+		index++;
+	}
+	return currentValue !== NO_VALUE_YET ? currentValue : undefined;
+};
+
+List.prototype.reduceRight = function(fn, initalValue) {
+	var currentValue = NO_VALUE_YET;
+	if (arguments.length > 1) {
+		currentValue = initialValue;
+	}
+	var current = this.data.previous;
+	var index = this.length - 1;
+	while (current !== this.data) {
+		if (currentValue === NO_VALUE_YET) {
+			currentValue = current.value;
+		} else {
+			currentValue = fn(currentValue, current.value, index, this);
+		}
+		current = current.previous;
+		index--;
+	}
+	return currentValue !== NO_VALUE_YET ? currentValue : undefined;
+};
+
+List.prototype.reverse = function() {
+	var current = this.data.next;
+	while (current !== this.data) {
+		var next = current.next;
+		current.next = current.previous;
+		current.previous = next;
+		current = next;
+	}
+	var next = this.data.next;
+	this.data.next = this.data.previous;
+	this.data.previous = next;
+};
+
+List.prototype.shift = function() {
+	var current = this.data.next;
+	if (current === this.data) {
+		return undefined;
+	}
+	this.data.next = current.next;
+	current.next.previous = this.data;
+	return current.value;
+};
+
+List.prototype.slice = function(start, end) {
+	if (start < 0) {
+		start = this.length + start;
+	}
+	if (end < 0) {
+		end = this.length + end;
+	}
+	var result = new List();
+	var current = getIndexNode(this, start);
+	var index = start;
+	while (current !== this.data && index < end) {
+		result.push(current.value);
+		current = current.next;
+		index++;
+	}
+	return result;
+};
+
+List.prototype.insert = function(position, value) {
+	var nodeBeforeInsertion = getIndexNode(this, position - 1);
+
+	for (var i = 1; i < arguments.length; ++i) {
+		var node = new Node(arguments[i], nodeBeforeInsertion, nodeBeforeInsertion.next);
+		nodeBeforeInsertion.next = node;
+		node.next.previous = node;
+
+		nodeBeforeInsertion = node;
+	}
+	this.length += arguments.length - 1;
+}
+
+List.prototype.splice = function(start, deleteCount) {
+	var tmp = new List();
+	for (var i = 2; i < arguments.length; ++i) {
+		tmp.push(arguments[i]);
+	}
+	var deleted = new List();
+	var current = getIndexNode(this, start);
+	var firstDeletedNode = current;
+	var lastDeletedNode = current;
+	var count = 0;
+	while (current !== this.data && count < deleteCount) {
+		deleted.push(current.value);
+		lastDeletedNode = current;
+		current = current.next;
+		count++;
+	}
+
+	if (tmp.length > 0) {
+		firstDeletedNode.previous.next = tmp.data.next;
+		tmp.data.next.previous = firstDeletedNode.previous;
+
+		tmp.data.previous.next = lastDeletedNode.next;
+		lastDeletedNode.next.previous = tmp.data.previous;
+	}
+
+	this.length = this.length - deleted.length + tmp.length;
+	return deleted;
+};
+
+List.prototype.sort = function(sortFunction) {
+	var sortedValues = this.toArray().sort(sortFunction);
+	var tmp = List.fromArray(sortedValues);
+	this.data = tmp.data;
+	return this;
+};
+
+List.prototype.toString = function() {
+	return this.join();
+};
+
+module.exports = List;
+},{}],2:[function(require,module,exports){
+"use strict";
+
 var defineProperties = require('./Utils').defineProperties;
 
 var empty = {};
@@ -158,7 +508,7 @@ defineProperties(Map.prototype, {
 
 var global = Function("return this")();
 module.exports = global.Map || Map;
-},{"./Utils":6}],2:[function(require,module,exports){
+},{"./Utils":7}],3:[function(require,module,exports){
 "use strict";
 
 var RichMap = require('./RichMap');
@@ -239,7 +589,7 @@ defineProperties(MultiMap.prototype, {
 });
 
 module.exports = MultiMap;
-},{"./RichMap":3,"./Utils":6,"topiary":35}],3:[function(require,module,exports){
+},{"./RichMap":4,"./Utils":7,"topiary":37}],4:[function(require,module,exports){
 "use strict";
 
 var Map = require('./Map');
@@ -371,7 +721,7 @@ defineProperties(RichMap.prototype, {
 });
 
 module.exports = RichMap;
-},{"./Map":1,"./MultiMap":2,"./Utils":6}],4:[function(require,module,exports){
+},{"./Map":2,"./MultiMap":3,"./Utils":7}],5:[function(require,module,exports){
 "use strict";
 
 var Set = require('./Set');
@@ -486,7 +836,7 @@ RichSet.EMPTY = new RichSet();
 RichSet.EMPTY.add = RichSet.EMPTY.remove = function() {throw new Error("This set is the immutable empty set.")};
 
 module.exports = RichSet;
-},{"./Set":5,"./Utils":6}],5:[function(require,module,exports){
+},{"./Set":6,"./Utils":7}],6:[function(require,module,exports){
 "use strict";
 
 var defineProperties = require('./Utils').defineProperties;
@@ -545,7 +895,7 @@ defineProperties(SetShim.prototype, {
 
 var global = Function("return this")();
 module.exports = global.Set || SetShim;
-},{"./Map":1,"./Utils":6}],6:[function(require,module,exports){
+},{"./Map":2,"./Utils":7}],7:[function(require,module,exports){
 exports.defineProperties = function(object, map) {
 	Object.keys(map).forEach(function(name) {
 		Object.defineProperty(object, name, {
@@ -590,7 +940,7 @@ exports.get = function get() {
 	var scope = arguments[1];
 	return scope[propertyName];
 };
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 "use strict";
 
 var oo = require('topiary');
@@ -798,10 +1148,6 @@ BaseGraph.prototype.springy = function springy() {
 		this.on('added-vertex', function(graph, vertexData) {
 			springyNodes.get(vertexData);
 		});
-		this.on('modified-edge-weight', function(graph, edge, weight, amount) {
-			var springyEdge = springyEdges.get(edge);
-			springyEdge.length = weight;
-		});
 		this.on('remove-vertex', function(graph, vertexData) {
 			var springyVertex = springyNodes.get(vertexData);
 			graph.removeNode(springyVertex);
@@ -830,7 +1176,7 @@ oo.install(BaseGraph);
 oo.implement(BaseGraph, Graph);
 
 module.exports = BaseGraph;
-},{"../datastructures/RichMap":3,"../datastructures/RichSet":4,"./FilteredGraph":8,"./Graph":9,"./TransposedGraph":13,"./WeightOrientedGraph":14,"springy":"kXL688","topiary":35}],8:[function(require,module,exports){
+},{"../datastructures/RichMap":4,"../datastructures/RichSet":5,"./FilteredGraph":9,"./Graph":10,"./TransposedGraph":14,"./WeightOrientedGraph":15,"springy":"kXL688","topiary":37}],9:[function(require,module,exports){
 "use strict";
 
 var Map = require('../datastructures/RichMap'), Set = require('../datastructures/RichSet');
@@ -915,7 +1261,7 @@ FilteredGraph.prototype.weight = function(edge) {
 };
 
 module.exports = FilteredGraph;
-},{"../datastructures/RichMap":3,"../datastructures/RichSet":4,"./ProxyGraph":11}],9:[function(require,module,exports){
+},{"../datastructures/RichMap":4,"../datastructures/RichSet":5,"./ProxyGraph":12}],10:[function(require,module,exports){
 /**
  * @interface
  */
@@ -976,7 +1322,7 @@ Graph.prototype.weight = function(edge) {};
 Graph.prototype.allVertexes = function() {};
 
 module.exports = Graph;
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 "use strict";
 
 var Map = require('../datastructures/RichMap'), Set = require('../datastructures/RichSet');
@@ -1001,7 +1347,7 @@ module.exports = BaseGraph.extend({
 		return null;
 	}
 });
-},{"../datastructures/RichMap":3,"../datastructures/RichSet":4,"./BaseGraph":7}],11:[function(require,module,exports){
+},{"../datastructures/RichMap":4,"../datastructures/RichSet":5,"./BaseGraph":8}],12:[function(require,module,exports){
 var oo = require('topiary');
 var BaseGraph = require('./BaseGraph');
 var Graph = require('./Graph');
@@ -1038,7 +1384,7 @@ module.exports = BaseGraph.extend( {
 	}
 
 });
-},{"./BaseGraph":7,"./Graph":9,"./NullGraph":10,"topiary":35}],12:[function(require,module,exports){
+},{"./BaseGraph":8,"./Graph":10,"./NullGraph":11,"topiary":37}],13:[function(require,module,exports){
 "use strict";
 
 var Map = require('../datastructures/RichMap'), Set = require('../datastructures/RichSet');
@@ -1188,7 +1534,7 @@ module.exports = BaseGraph.extend({
 });
 
 Emitter.mixInto(module.exports);
-},{"../datastructures/RichMap":3,"../datastructures/RichSet":4,"./BaseGraph":7,"emitter":18}],13:[function(require,module,exports){
+},{"../datastructures/RichMap":4,"../datastructures/RichSet":5,"./BaseGraph":8,"emitter":19}],14:[function(require,module,exports){
 "use strict";
 
 var BaseGraph = require('./BaseGraph');
@@ -1223,7 +1569,7 @@ module.exports = ProxyGraph.extend({
 });
 
 
-},{"./BaseGraph":7,"./ProxyGraph":11}],14:[function(require,module,exports){
+},{"./BaseGraph":8,"./ProxyGraph":12}],15:[function(require,module,exports){
 var FilteredGraph = require('./FilteredGraph');
 
 function WeightOrientedGraph(parentGraph) {
@@ -1251,7 +1597,7 @@ WeightOrientedGraph.prototype.weight = function(edge) {
 };
 
 module.exports = WeightOrientedGraph;
-},{"./FilteredGraph":8}],15:[function(require,module,exports){
+},{"./FilteredGraph":9}],16:[function(require,module,exports){
 module.exports = {
 	Graph: require('./graph/Graph'),
 	SimpleGraph: require('./graph/SimpleGraph'),
@@ -1260,9 +1606,9 @@ module.exports = {
 	Set: require('./datastructures/RichSet'),
 	Map: require('./datastructures/RichMap'),
 	MultiMap: require('./datastructures/MultiMap'),
-	Springy: require('springy')
+	LinkedList: require('./datastructures/LinkedList')
 };
-},{"./datastructures/MultiMap":2,"./datastructures/RichMap":3,"./datastructures/RichSet":4,"./datastructures/Utils":6,"./graph/BaseGraph":7,"./graph/Graph":9,"./graph/SimpleGraph":12,"springy":"kXL688"}],"springy":[function(require,module,exports){
+},{"./datastructures/LinkedList":1,"./datastructures/MultiMap":3,"./datastructures/RichMap":4,"./datastructures/RichSet":5,"./datastructures/Utils":7,"./graph/BaseGraph":8,"./graph/Graph":10,"./graph/SimpleGraph":13}],"springy":[function(require,module,exports){
 module.exports=require('kXL688');
 },{}],"kXL688":[function(require,module,exports){
 /**
@@ -1963,7 +2309,7 @@ module.exports=require('kXL688');
 	};
 }).call(this);
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 /*global module, define*/
 (function(definition) {
 	if (typeof define === "function") {
@@ -2590,39 +2936,41 @@ module.exports=require('kXL688');
 
 	return Emitter;
 });
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 module.exports=require(1)
-},{"./Utils":24}],20:[function(require,module,exports){
-arguments[4][2][0].apply(exports,arguments)
-},{"./RichMap":21,"./Utils":24,"topiary":35}],21:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
+module.exports=require(2)
+},{"./Utils":26}],22:[function(require,module,exports){
 arguments[4][3][0].apply(exports,arguments)
-},{"./Map":19,"./MultiMap":20,"./Utils":24}],22:[function(require,module,exports){
+},{"./RichMap":23,"./Utils":26,"topiary":37}],23:[function(require,module,exports){
 arguments[4][4][0].apply(exports,arguments)
-},{"./Set":23,"./Utils":24}],23:[function(require,module,exports){
+},{"./Map":21,"./MultiMap":22,"./Utils":26}],24:[function(require,module,exports){
 arguments[4][5][0].apply(exports,arguments)
-},{"./Map":19,"./Utils":24}],24:[function(require,module,exports){
-module.exports=require(6)
-},{}],25:[function(require,module,exports){
-arguments[4][7][0].apply(exports,arguments)
-},{"../datastructures/RichMap":21,"../datastructures/RichSet":22,"./FilteredGraph":26,"./Graph":27,"./TransposedGraph":31,"./WeightOrientedGraph":32,"springy":"kXL688","topiary":35}],26:[function(require,module,exports){
+},{"./Set":25,"./Utils":26}],25:[function(require,module,exports){
+arguments[4][6][0].apply(exports,arguments)
+},{"./Map":21,"./Utils":26}],26:[function(require,module,exports){
+module.exports=require(7)
+},{}],27:[function(require,module,exports){
 arguments[4][8][0].apply(exports,arguments)
-},{"../datastructures/RichMap":21,"../datastructures/RichSet":22,"./ProxyGraph":29}],27:[function(require,module,exports){
-module.exports=require(9)
-},{}],28:[function(require,module,exports){
-arguments[4][10][0].apply(exports,arguments)
-},{"../datastructures/RichMap":21,"../datastructures/RichSet":22,"./BaseGraph":25}],29:[function(require,module,exports){
+},{"../datastructures/RichMap":23,"../datastructures/RichSet":24,"./FilteredGraph":28,"./Graph":29,"./TransposedGraph":33,"./WeightOrientedGraph":34,"springy":"kXL688","topiary":37}],28:[function(require,module,exports){
+arguments[4][9][0].apply(exports,arguments)
+},{"../datastructures/RichMap":23,"../datastructures/RichSet":24,"./ProxyGraph":31}],29:[function(require,module,exports){
+module.exports=require(10)
+},{}],30:[function(require,module,exports){
 arguments[4][11][0].apply(exports,arguments)
-},{"./BaseGraph":25,"./Graph":27,"./NullGraph":28,"topiary":35}],30:[function(require,module,exports){
+},{"../datastructures/RichMap":23,"../datastructures/RichSet":24,"./BaseGraph":27}],31:[function(require,module,exports){
 arguments[4][12][0].apply(exports,arguments)
-},{"../datastructures/RichMap":21,"../datastructures/RichSet":22,"./BaseGraph":25,"emitter":18}],31:[function(require,module,exports){
+},{"./BaseGraph":27,"./Graph":29,"./NullGraph":30,"topiary":37}],32:[function(require,module,exports){
 arguments[4][13][0].apply(exports,arguments)
-},{"./BaseGraph":25,"./ProxyGraph":29}],32:[function(require,module,exports){
+},{"../datastructures/RichMap":23,"../datastructures/RichSet":24,"./BaseGraph":27,"emitter":19}],33:[function(require,module,exports){
 arguments[4][14][0].apply(exports,arguments)
-},{"./FilteredGraph":26}],"graff":[function(require,module,exports){
+},{"./BaseGraph":27,"./ProxyGraph":31}],34:[function(require,module,exports){
+arguments[4][15][0].apply(exports,arguments)
+},{"./FilteredGraph":28}],"graff":[function(require,module,exports){
 module.exports=require('ptv9un');
 },{}],"ptv9un":[function(require,module,exports){
-arguments[4][15][0].apply(exports,arguments)
-},{"./datastructures/MultiMap":20,"./datastructures/RichMap":21,"./datastructures/RichSet":22,"./datastructures/Utils":24,"./graph/BaseGraph":25,"./graph/Graph":27,"./graph/SimpleGraph":30,"springy":"kXL688"}],35:[function(require,module,exports){
+arguments[4][16][0].apply(exports,arguments)
+},{"./datastructures/LinkedList":20,"./datastructures/MultiMap":22,"./datastructures/RichMap":23,"./datastructures/RichSet":24,"./datastructures/Utils":26,"./graph/BaseGraph":27,"./graph/Graph":29,"./graph/SimpleGraph":32}],37:[function(require,module,exports){
 /**
  * @namespace
  * The topiary namespace contains a number of functions for
@@ -3343,5 +3691,5 @@ arguments[4][15][0].apply(exports,arguments)
 	return exporting;
 });
 
-},{}]},{},[15])
+},{}]},{},[16])
 ;
