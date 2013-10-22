@@ -12,6 +12,6 @@ graff
 Javascript Graph Theory
 
  * [source](https://github.com/kybernetikos/graff)
- * [demo](http://kybernetikos.github.io/graff)
+ * [demo](http://kybernetikos.github.io/graff/demo)
  * [specs](http://kybernetikos.github.io/graff/specs)
 
