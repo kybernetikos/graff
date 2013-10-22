@@ -17,7 +17,9 @@
 <!-- canvas-render uses access to the document.body to measure text sizes -->
 <script src="canvas-render.js"></script>
 
-<button onclick="removeCycleLinks();">Remove Cycles</button> <hr />
+<button onclick="removeCycleLinks();">Remove Cycles</button>
+<button onclick="groupCycles();">Group Cycles</button>
+<hr />
 
 <canvas id="springydemo" width="640" height="480" style='border: 1px solid black;'/>
 
@@ -53,6 +55,31 @@
 					}, a);
 			components = a.stronglyConnected();
 		} while (lastNumberOfComponents != components.length);
+	}
+
+	function groupCycles() {
+		var components = a.stronglyConnected();
+		for (var i = 0; i < components.length; ++i) {
+			var component = components[i];
+			var vertexes = component.allVertexes();
+			if (vertexes.size === 1) continue;
+
+			var groupVertex = vertexes.toString();
+			a.addVertex(groupVertex);
+			vertexes.forEach(function(vertex) {
+				a.edgesTo(vertex).forEach(function(edge) {
+					var source = a.source(edge);
+					var weight = a.weight(edge);
+					a.addEdge(source, groupVertex, weight);
+				});
+				a.edgesFrom(vertex).forEach(function(edge) {
+					var target = a.target(edge);
+					var weight = a.weight(edge);
+					a.addEdge(groupVertex, target, weight);
+				});
+				a.removeVertex(vertex);
+			});
+		}
 	}
 </script>
 
