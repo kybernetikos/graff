@@ -68,21 +68,30 @@
 			var vertexes = component.allVertexes();
 			if (vertexes.size === 1) continue;
 
-			var groupVertex = vertexes.toString();
-			a.addVertex(groupVertex);
+			a.addVertex(vertexes);
 			vertexes.forEach(function(vertex) {
 				a.edgesTo(vertex).forEach(function(edge) {
 					var source = a.source(edge);
 					var weight = a.weight(edge);
 					if (vertexes.has(source) == false) {
-						a.addEdge(source, groupVertex, weight);
+						var previousEdge = a.edge(source, vertexes);
+						if (previousEdge != null) {
+							a.incrementWeight(previousEdge, weight);
+						} else {
+							a.addEdge(source, vertexes, weight);
+						}
 					}
 				});
 				a.edgesFrom(vertex).forEach(function(edge) {
 					var target = a.target(edge);
 					var weight = a.weight(edge);
 					if (vertexes.has(target) == false) {
-						a.addEdge(groupVertex, target, weight);
+						var previousEdge = a.edge(vertexes, target);
+						if (previousEdge != null) {
+							a.incrementWeight(previousEdge, weight);
+						} else {
+							a.addEdge(vertexes, target, weight);
+						}
 					}
 				});
 				a.removeVertex(vertex);
