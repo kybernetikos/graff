@@ -2,6 +2,53 @@
 return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 
 },{}],2:[function(require,module,exports){
+exports.defineProperties = function(object, map) {
+	Object.keys(map).forEach(function(name) {
+		Object.defineProperty(object, name, {
+			configurable: true,
+			enumerable: false,
+			writable: true,
+			value: map[name]
+		});
+	});
+};
+
+exports.id = function(x) {
+	return x;
+};
+
+exports.call = function call() {
+	var functionName = arguments[0];
+	if (arguments.length === 0) {
+		return call;
+	} else if (arguments.length == 1) {
+		return function() {
+			var currentArgs = Array.prototype.slice.call(arguments);
+			currentArgs.unshift(functionName);
+			return call.apply(null, currentArgs);
+		}
+	}
+	var scope = arguments[1];
+	return scope[functionName].apply(scope, Array.prototype.slice.call(arguments, 2));
+};
+
+exports.get = function get() {
+	var propertyName = arguments[0];
+	if (arguments.length === 0) {
+		return get;
+	} else if (arguments.length == 1) {
+		return function() {
+			var currentArgs = Array.prototype.slice.call(arguments);
+			currentArgs.unshift(propertyName);
+			return get.apply(null, currentArgs);
+		}
+	}
+	var scope = arguments[1];
+	return scope[propertyName];
+};
+
+exports.NOOP = function NOOP() {};
+},{}],3:[function(require,module,exports){
 "use strict";
 
 var NO_VALUE_YET = {};
@@ -351,10 +398,10 @@ List.prototype.toString = function() {
 };
 
 module.exports = List;
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 "use strict";
 
-var defineProperties = require('./Utils').defineProperties;
+var defineProperties = require('../Utils').defineProperties;
 
 var empty = {};
 
@@ -511,12 +558,12 @@ defineProperties(Map.prototype, {
 
 var global = Function("return this")();
 module.exports = global.Map || Map;
-},{"./Utils":8}],4:[function(require,module,exports){
+},{"../Utils":2}],5:[function(require,module,exports){
 "use strict";
 
 var RichMap = require('./RichMap');
 var oo = require('topiary');
-var defineProperties = require('./Utils').defineProperties;
+var defineProperties = require('../Utils').defineProperties;
 
 function newArray() {
 	return [];
@@ -592,11 +639,11 @@ defineProperties(MultiMap.prototype, {
 });
 
 module.exports = MultiMap;
-},{"./RichMap":5,"./Utils":8,"topiary":19}],5:[function(require,module,exports){
+},{"../Utils":2,"./RichMap":6,"topiary":19}],6:[function(require,module,exports){
 "use strict";
 
 var Map = require('./Map');
-var defineProperties = require('./Utils').defineProperties, id = require('./Utils').id;
+var defineProperties = require('../Utils').defineProperties, id = require('../Utils').id;
 
 var NO_VALUE_YET = {};
 
@@ -724,11 +771,11 @@ defineProperties(RichMap.prototype, {
 });
 
 module.exports = RichMap;
-},{"./Map":3,"./MultiMap":4,"./Utils":8}],6:[function(require,module,exports){
+},{"../Utils":2,"./Map":4,"./MultiMap":5}],7:[function(require,module,exports){
 "use strict";
 
 var Set = require('./Set');
-var defineProperties = require('./Utils').defineProperties, id = require('./Utils').id;
+var defineProperties = require('../Utils').defineProperties, id = require('../Utils').id;
 
 var NO_VALUE_YET = {};
 
@@ -839,10 +886,10 @@ RichSet.EMPTY = new RichSet();
 RichSet.EMPTY.add = RichSet.EMPTY.remove = function() {throw new Error("This set is the immutable empty set.")};
 
 module.exports = RichSet;
-},{"./Set":7,"./Utils":8}],7:[function(require,module,exports){
+},{"../Utils":2,"./Set":8}],8:[function(require,module,exports){
 "use strict";
 
-var defineProperties = require('./Utils').defineProperties;
+var defineProperties = require('../Utils').defineProperties;
 
 var Map = require('./Map');
 
@@ -898,63 +945,19 @@ defineProperties(SetShim.prototype, {
 
 var global = Function("return this")();
 module.exports = global.Set || SetShim;
-},{"./Map":3,"./Utils":8}],8:[function(require,module,exports){
-exports.defineProperties = function(object, map) {
-	Object.keys(map).forEach(function(name) {
-		Object.defineProperty(object, name, {
-			configurable: true,
-			enumerable: false,
-			writable: true,
-			value: map[name]
-		});
-	});
-};
-
-exports.id = function(x) {
-	return x;
-};
-
-exports.call = function call() {
-	var functionName = arguments[0];
-	if (arguments.length === 0) {
-		return call;
-	} else if (arguments.length == 1) {
-		return function() {
-			var currentArgs = Array.prototype.slice.call(arguments);
-			currentArgs.unshift(functionName);
-			return call.apply(null, currentArgs);
-		}
-	}
-	var scope = arguments[1];
-	return scope[functionName].apply(scope, Array.prototype.slice.call(arguments, 2));
-};
-
-exports.get = function get() {
-	var propertyName = arguments[0];
-	if (arguments.length === 0) {
-		return get;
-	} else if (arguments.length == 1) {
-		return function() {
-			var currentArgs = Array.prototype.slice.call(arguments);
-			currentArgs.unshift(propertyName);
-			return get.apply(null, currentArgs);
-		}
-	}
-	var scope = arguments[1];
-	return scope[propertyName];
-};
-},{}],9:[function(require,module,exports){
+},{"../Utils":2,"./Map":4}],9:[function(require,module,exports){
 "use strict";
+
+var global = Function('return this')();
 
 var oo = require('topiary');
 var Map = require('../datastructures/RichMap'), Set = require('../datastructures/RichSet');
+var NOOP = require('../Utils').NOOP;
 var Graph = require('./Graph');
-
-function NOOP(){}
 
 function BaseGraph() {}
 
-// Graph interface implementation
+// Graph interface implementation //////////////////////////////////////////////////////////////////
 
 BaseGraph.prototype.allVertexes = function() {
 	throw new Error("Graph.allVertexes() must be implemented.");
@@ -1009,7 +1012,7 @@ BaseGraph.prototype.weight = function(edge) {
 	return 1;
 };
 
-// Other Useful methods
+// Transformed view methods ////////////////////////////////////////////////////////////////////////
 
 BaseGraph.prototype.transpose = function() {
 	var TransposedGraph = require('./TransposedGraph');
@@ -1021,7 +1024,104 @@ BaseGraph.prototype.weightOriented = function() {
 	return new WeightOrientedGraph(this);
 };
 
+// Filter methods //////////////////////////////////////////////////////////////////////////////////
+
+BaseGraph.prototype.filter = function filter(edgeFilter, vertexFilter) {
+	var FilteredGraph = require('./FilteredGraph');
+	return new FilteredGraph(this, edgeFilter, vertexFilter);
+};
+
+BaseGraph.prototype.limitEdges = function(edgeSet) {
+	var FilteredGraph = require('./FilteredGraph');
+	return FilteredGraph.limitEdges(this, edgeSet);
+};
+
+BaseGraph.prototype.limitVertexes = function(reducedVertexSet) {
+	var FilteredGraph = require('./FilteredGraph');
+	return FilteredGraph.limitVertexes(this, reducedVertexSet);
+};
+
+BaseGraph.prototype.limitWeight = function(minWeight, maxWeight) {
+	var FilteredGraph = require('./FilteredGraph');
+	return FilteredGraph.limitWeight(this, minWeight, maxWeight);
+};
+
+// springy methods /////////////////////////////////////////////////////////////////////////////////
+
+BaseGraph.prototype.springy = function springy() {
+	var Springy = global.Springy || require('springy');
+	var sGraph = new Springy.Graph();
+
+	var springyNodes = new Map(function(vertex) {
+		var nodeData = {
+			data: vertex,
+			label: String(vertex)
+		};
+		return sGraph.newNode(nodeData);
+	});
+	var springyEdges = new Map(function(edge) {
+		var weight = this.weight(edge);
+		var source = springyNodes.get(this.source(edge));
+		var target = springyNodes.get(this.target(edge));
+		var edgeData = {
+			data: edge
+		};
+		if (edge && edge.color) {
+			edgeData.color = edge.color;
+		}
+		if (edge && edge.label) {
+			edgeData.label = edge.label;
+		} else if (weight !== 1) {
+			edgeData.label = weight;
+		}
+		return sGraph.newEdge(source, target, edgeData);
+	}.bind(this));
+
+	this.allVertexes().forEach(function(vertex) {
+		springyNodes.get(vertex);
+	});
+	this.allEdges().forEach(function(edge) {
+		springyEdges.get(edge);
+	});
+
+	if ('on' in this) {
+		this.on('added-edge', function(graph, source, target, edgeData, weight) {
+			springyEdges.get(edgeData);
+		});
+		this.on('added-vertex', function(graph, vertexData) {
+			springyNodes.get(vertexData);
+		});
+		this.on('remove-vertex', function(graph, vertexData) {
+			var springyVertex = springyNodes.get(vertexData);
+			sGraph.removeNode(springyVertex);
+			springyNodes.remove(vertexData);
+		});
+		this.on('remove-edge', function(graph, a, b, edge, weight) {
+			var springyEdge = springyEdges.get(edge);
+			sGraph.removeEdge(springyEdge);
+			springyEdges.remove(edge);
+		});
+	}
+	return sGraph;
+};
+
+// Utility methods /////////////////////////////////////////////////////////////////////////////////
+
+BaseGraph.prototype.weakestLinks = function() {
+	var graph = this;
+	return this.allEdges().allValues().map(function(edge) {
+		return {edge: edge, weight: graph.weight(edge)};
+	}).sort(function(a, b) {
+		return a.weight - b.weight;
+	}).filter(function(record, index, array) {
+		return record.weight === array[0].weight
+	}).map(function(record) {
+		return record.edge;
+	});
+};
+
 BaseGraph.prototype.stronglyConnected = function() {
+	// by Tarjans algorithm.
 	var currentIndex = 0;
 	var stack = [];
 	var result = [];
@@ -1068,7 +1168,6 @@ BaseGraph.prototype.stronglyConnected = function() {
 	});
 };
 
-
 BaseGraph.prototype.traverseDepthFirst = function(onDiscovery, onExplored, onUnexploredLoop, onExploredLoop) {
 	onDiscovery = onDiscovery || NOOP;
 	onExplored = onExplored || NOOP;
@@ -1108,65 +1207,6 @@ BaseGraph.prototype.traverseDepthFirst = function(onDiscovery, onExplored, onUne
 	});
 };
 
-BaseGraph.prototype.springy = function springy() {
-	var global = Function('return this')();
-	var Springy = global.Springy || require('springy');
-	var graph = new Springy.Graph();
-
-	var springyNodes = new Map(function(vertex) {
-		var nodeData = {
-			data: vertex,
-			label: String(vertex)
-		};
-		return graph.newNode(nodeData);
-	});
-	var springyEdges = new Map(function(edge) {
-		var weight = this.weight(edge);
-		var source = springyNodes.get(this.source(edge));
-		var target = springyNodes.get(this.target(edge));
-		var edgeData = {
-			data: edge
-		};
-		if (edge.color) {
-			edgeData.color = edge.color;
-		}
-		if (edge.label) {
-			edgeData.label = edge.label;
-		} else if (weight !== 1) {
-			edgeData.label = weight;
-		}
-		return graph.newEdge(source, target, edgeData);
-	}.bind(this));
-
-	this.allVertexes().forEach(function(vertex) {
-		springyNodes.get(vertex);
-	});
-	this.allEdges().forEach(function(edge) {
-		springyEdges.get(edge);
-	});
-
-	if ('on' in this) {
-		this.on('added-edge', function(graph, source, target, edgeData, weight) {
-			springyEdges.get(edgeData);
-		});
-		this.on('added-vertex', function(graph, vertexData) {
-			springyNodes.get(vertexData);
-		});
-		this.on('remove-vertex', function(graph, vertexData) {
-			var springyVertex = springyNodes.get(vertexData);
-			graph.removeNode(springyVertex);
-			springyNodes.remove(vertexData);
-		});
-		this.on('remove-edge', function(graph, edge) {
-			var springyEdge = springyEdges.get(edge);
-			graph.removeNode(springyEdge);
-			springyEdges.remove(edge);
-		});
-	}
-	return graph;
-};
-
-
 BaseGraph.prototype.toString = function() {
 	var graph = this;
 	return "Vertexes:\n\t"+
@@ -1180,7 +1220,7 @@ oo.install(BaseGraph);
 oo.implement(BaseGraph, Graph);
 
 module.exports = BaseGraph;
-},{"../datastructures/RichMap":5,"../datastructures/RichSet":6,"./FilteredGraph":10,"./Graph":11,"./TransposedGraph":15,"./WeightOrientedGraph":16,"springy":1,"topiary":19}],10:[function(require,module,exports){
+},{"../Utils":2,"../datastructures/RichMap":6,"../datastructures/RichSet":7,"./FilteredGraph":10,"./Graph":11,"./TransposedGraph":15,"./WeightOrientedGraph":16,"springy":1,"topiary":19}],10:[function(require,module,exports){
 "use strict";
 
 var Map = require('../datastructures/RichMap'), Set = require('../datastructures/RichSet');
@@ -1265,7 +1305,7 @@ FilteredGraph.prototype.weight = function(edge) {
 };
 
 module.exports = FilteredGraph;
-},{"../datastructures/RichMap":5,"../datastructures/RichSet":6,"./ProxyGraph":13}],11:[function(require,module,exports){
+},{"../datastructures/RichMap":6,"../datastructures/RichSet":7,"./ProxyGraph":13}],11:[function(require,module,exports){
 /**
  * @interface
  */
@@ -1351,7 +1391,7 @@ module.exports = BaseGraph.extend({
 		return null;
 	}
 });
-},{"../datastructures/RichMap":5,"../datastructures/RichSet":6,"./BaseGraph":9}],13:[function(require,module,exports){
+},{"../datastructures/RichMap":6,"../datastructures/RichSet":7,"./BaseGraph":9}],13:[function(require,module,exports){
 var oo = require('topiary');
 var BaseGraph = require('./BaseGraph');
 var Graph = require('./Graph');
@@ -1409,6 +1449,51 @@ module.exports = BaseGraph.extend({
 		this._sgWeights = new Map();
 	},
 
+	// BaseGraph abstract methods ///////////////////////////////////////////////////////////////////
+
+	allVertexes: function() {
+		return this._sgVertexes;
+	},
+
+	allEdges: function() {
+		return this._sgEdges;
+	},
+
+	source: function(edge) {
+		return this._sgEdgeSource.get(edge);
+	},
+
+	target: function(edge) {
+		return this._sgEdgeTarget.get(edge);
+	},
+
+	weight: function(edge) {
+		return this._sgWeights.get(edge);
+	},
+
+	// Other Graph interface methods ////////////////////////////////////////////////////////////////
+
+	edge: function(from, to) {
+		var result = null;
+		var edgeTargetMap = this._sgEdgeTarget;
+		this.edgesFrom(from).forEach(function(edge) {
+			if (edgeTargetMap.get(edge) === to) {
+				result = edge;
+			}
+		});
+		return result;
+	},
+
+	edgesFrom: function(source) {
+		return this._sgSourceEdges.get(source) || Set.EMPTY;
+	},
+
+	edgesTo: function(target) {
+		return this._sgTargetEdges.get(target) || Set.EMPTY;
+	},
+
+	// Mutation methods ///////////////////////////////////////////////////////////////////////////////////////////////////
+
 	addVertex: function(vertexData) {
 		if (this._sgVertexes.has(vertexData) !== false) {
 			return false;
@@ -1459,29 +1544,32 @@ module.exports = BaseGraph.extend({
 		return true;
 	},
 
+	removeEdge: function(edgeData) {
+		if (this._sgEdges.has(edgeData) === false) {
+			return false;
+		}
+		var weight = this.weight(edgeData);
+		var source = this.source(edgeData);
+		var target = this.target(edgeData);
+
+		this._sgWeights.remove(edgeData);
+		this._sgSourceEdges.remove(edgeData);
+		this._sgTargetEdges.remove(edgeData);
+		this._sgEdgeSource.remove(edgeData);
+		this._sgEdgeTarget.remove(edgeData);
+		this._sgEdges.remove(edgeData);
+
+		this.trigger('remove-edge', this, source, target, edgeData, weight);
+		this.trigger('changed', this);
+		return true;
+	},
+
 	merge: function(graph) {
 		graph.allVertexes().forEach(this.addVertex.bind(this));
 		graph.allEdges().forEach(function(edge) {
 			this.addEdge(graph.source(edge), graph.target(edge), graph.weight(edge), edge);
 		}.bind(this));
 		return this;
-	},
-
-	removeEdge: function(edgeData) {
-		if (this._sgEdges.has(edgeData) === false) {
-			return false;
-		}
-		var weight = this._sgWeights.get(edgeData);
-		var source = this._sgSourceEdges.get(edgeData);
-		var target = this._sgTargetEdges.get(edgeData);
-		this._sgWeights.remove(edgeData);
-		this._sgSourceEdges.remove(edgeData);
-		this._sgTargetEdges.remove(edgeData);
-		this._sgEdges.remove(edgeData);
-
-		this.trigger('remove-edge', this, source, target, edgeData, weight);
-		this.trigger('changed', this);
-		return true;
 	},
 
 	incrementWeight: function(edge, amount) {
@@ -1491,54 +1579,11 @@ module.exports = BaseGraph.extend({
 		this._sgWeights.set(edge, this._sgWeights.get(edge) + amount);
 		this.trigger('modified-edge-weight', this, edge, this._sgWeights.get(edge), amount);
 		this.trigger('changed', this);
-	},
-
-	/////////////////////////////////////////////////////////////////////////////////////////
-
-	allVertexes: function() {
-		return this._sgVertexes;
-	},
-
-	allEdges: function() {
-		return this._sgEdges;
-	},
-
-	source: function(edge) {
-		return this._sgEdgeSource.get(edge);
-	},
-
-	target: function(edge) {
-		return this._sgEdgeTarget.get(edge);
-	},
-
-	weight: function(edge) {
-		return this._sgWeights.get(edge);
-	},
-
-	/////////////////////////////////////////////////////////////////////////////////////////
-
-	edge: function(from, to) {
-		var result = null;
-		var edgeTargetMap = this._sgEdgeTarget;
-		this.edgesFrom(from).forEach(function(edge) {
-			if (edgeTargetMap.get(edge) === to) {
-				result = edge;
-			}
-		});
-		return result;
-	},
-
-	edgesFrom: function(source) {
-		return this._sgSourceEdges.get(source) || Set.EMPTY;
-	},
-
-	edgesTo: function(target) {
-		return this._sgTargetEdges.get(target) || Set.EMPTY;
 	}
 });
 
 Emitter.mixInto(module.exports);
-},{"../datastructures/RichMap":5,"../datastructures/RichSet":6,"./BaseGraph":9,"emitter":18}],15:[function(require,module,exports){
+},{"../datastructures/RichMap":6,"../datastructures/RichSet":7,"./BaseGraph":9,"emitter":18}],15:[function(require,module,exports){
 "use strict";
 
 var BaseGraph = require('./BaseGraph');
@@ -1606,13 +1651,14 @@ module.exports = {
 	Graph: require('./graph/Graph'),
 	SimpleGraph: require('./graph/SimpleGraph'),
 	BaseGraph: require('./graph/BaseGraph'),
-	Utils: require('./datastructures/Utils'),
+	ProxyGraph: require('./graph/ProxyGraph'),
+	Utils: require('./Utils'),
 	Set: require('./datastructures/RichSet'),
 	Map: require('./datastructures/RichMap'),
 	MultiMap: require('./datastructures/MultiMap'),
 	LinkedList: require('./datastructures/LinkedList')
 };
-},{"./datastructures/LinkedList":2,"./datastructures/MultiMap":4,"./datastructures/RichMap":5,"./datastructures/RichSet":6,"./datastructures/Utils":8,"./graph/BaseGraph":9,"./graph/Graph":11,"./graph/SimpleGraph":14}],18:[function(require,module,exports){
+},{"./Utils":2,"./datastructures/LinkedList":3,"./datastructures/MultiMap":5,"./datastructures/RichMap":6,"./datastructures/RichSet":7,"./graph/BaseGraph":9,"./graph/Graph":11,"./graph/ProxyGraph":13,"./graph/SimpleGraph":14}],18:[function(require,module,exports){
 /*global module, define*/
 (function(definition) {
 	if (typeof define === "function") {

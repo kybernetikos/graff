@@ -4,7 +4,10 @@
 	<title>Example graff</title>
 	<meta charset="utf-8">
 
-	<!-- local and remote version of springy so that it can work offline -->
+	<!--
+		local and remote version of springy so that it can work both offline and without
+		a build
+	-->
 	<script src="../node_modules/springy/springy.js"></script>
 	<script src="http://dhotson.github.io/springy/springy.js"></script>
 
@@ -14,14 +17,17 @@
 <!-- canvas-render uses access to the document.body to measure text sizes -->
 <script src="canvas-render.js"></script>
 
+<button onclick="removeCycleLinks();">Remove Cycles</button> <hr />
+
 <canvas id="springydemo" width="640" height="480" style='border: 1px solid black;'/>
+
 
 <script>
 	var a = new graff.SimpleGraph();
 	a.addEdge("alan", "bob", 4);
 	a.addEdge("bob", "clem", 4);
 	a.addEdge("clem", "alan", 4);
-	a.addEdge("xara", "bob", 10);
+	a.addEdge("xara", "bob", 2);
 	a.addEdge("bob", "yan", 10);
 	a.addEdge("yan", "xara", 10);
 	a.addEdge("clem", "one", 4);
@@ -32,6 +38,24 @@
 	var sg = a.springy();
 	var display = document.getElementById('springydemo');
 	renderGraph(display, sg);
+
+	function removeCycleLinks() {
+		var components = a.stronglyConnected();
+		var lastNumberOfComponents;
+
+		do {
+			lastNumberOfComponents = components.length;
+			components.map(graff.Utils.call("weakestLinks"))
+					.reduce(function(graph, links) {
+						links.forEach(function(link) {
+							graph.removeEdge(link);
+						});
+						return graph;
+					}, a);
+			components = a.stronglyConnected();
+		} while (lastNumberOfComponents != components.length);
+	}
 </script>
+
 </body>
 </html>
