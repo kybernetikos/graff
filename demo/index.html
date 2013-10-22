@@ -42,7 +42,6 @@
 	function removeCycleLinks() {
 		var components = a.stronglyConnected();
 		var lastNumberOfComponents;
-
 		do {
 			lastNumberOfComponents = components.length;
 			components.map(graff.Utils.call("weakestLinks"))
