@@ -1,30 +1,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title></title>
+	<title>Example graff</title>
 	<meta charset="utf-8">
+
+	<!-- local and remote version of springy so that it can work offline -->
+	<script src="../node_modules/springy/springy.js"></script>
+	<script src="http://dhotson.github.io/springy/springy.js"></script>
+
+	<script src="../target/graff.js"></script>
 </head>
 <body>
-<script src="../target/graff.js"></script>
-<script>
-	var graff = require('graff'), Springy = require('springy');
-</script>
+<!-- canvas-render uses access to the document.body to measure text sizes -->
 <script src="canvas-render.js"></script>
 
 <canvas id="springydemo" width="640" height="480" style='border: 1px solid black;'/>
 
 <script>
 	var a = new graff.SimpleGraph();
-	a.addEdge("a", "b", 4);
-	a.addEdge("b", "c", 4);
-	a.addEdge("c", "a", 4);
-	a.addEdge("x", "b", 10);
-	a.addEdge("b", "y", 10);
-	a.addEdge("y", "x", 10);
-	a.addEdge("c", "1", 4);
-	a.addEdge("1", "2", 4);
-	a.addEdge("2", "3", 10);
-	a.addEdge("3", "2", 10);
+	a.addEdge("alan", "bob", 4);
+	a.addEdge("bob", "clem", 4);
+	a.addEdge("clem", "alan", 4);
+	a.addEdge("xara", "bob", 10);
+	a.addEdge("bob", "yan", 10);
+	a.addEdge("yan", "xara", 10);
+	a.addEdge("clem", "one", 4);
+	a.addEdge("one", "two", 4);
+	a.addEdge("two", "three", 10);
+	a.addEdge("three", "two", 10);
 
 	var sg = a.springy();
 	var display = document.getElementById('springydemo');

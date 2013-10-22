@@ -22,6 +22,6 @@
     "test": "jasmine-node --verbose specs",
     "start": "beefy .:target/graff.js -- -s graff",
     "doc": "jsdoc lib -d doc",
-    "prepublish": "browserify -r graff -r springy . -o target/graff.js"
+    "prepublish": "browserify -i springy -s graff . -o target/graff.js"
   }
 }

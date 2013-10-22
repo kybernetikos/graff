@@ -231,7 +231,7 @@
 
 					var s = toScreen(p);
 
-					var boxWidth = node.getWidth();
+					var boxWidth = node.getWidth() ;
 					var boxHeight = node.getHeight();
 					// clear background
 					ctx.clearRect(s.x - boxWidth/2, s.y - boxHeight/2, boxWidth, boxHeight);
@@ -249,6 +249,6 @@
 		renderer.start();
 	}
 
-	window.Label =Label;
+	window.Label = Label;
 	window.renderGraph = render;
 })();
