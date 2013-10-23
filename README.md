@@ -66,7 +66,7 @@ Example
 	var cycles = myGraph.stronglyConnected();
 	console.log(cycles.map(graff.Utils.call("toString")));
 
-	function removeCycleLinks() {
+	function removeCycleLinks(a) {
 		var components = a.stronglyConnected();
 		var lastNumberOfComponents;
 		do {
@@ -81,4 +81,4 @@ Example
 			components = a.stronglyConnected();
 		} while (lastNumberOfComponents != components.length);
 	}
-```javascript
+```
