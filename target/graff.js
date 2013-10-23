@@ -877,6 +877,19 @@ defineProperties(RichSet.prototype, {
 		return this.map(id);
 	},
 
+	equal: function(otherSet) {
+		if (otherSet.size !== this.size) {
+			return false;
+		}
+		var hasAll = true;
+		this.forEach(function(value) {
+			if (otherSet.has(value) === false) {
+				hasAll = false;
+			}
+		});
+		return hasAll;
+	},
+
 	toString: function() {
 		return "[[ " + this.allValues().join(", ") + " ]]";
 	}
@@ -957,7 +970,7 @@ var Graph = require('./Graph');
 
 function BaseGraph() {}
 
-// Graph interface implementation //////////////////////////////////////////////////////////////////
+// Required graph interface methods ////////////////////////////////////////////////////////////////
 
 BaseGraph.prototype.allVertexes = function() {
 	throw new Error("Graph.allVertexes() must be implemented.");
@@ -974,6 +987,8 @@ BaseGraph.prototype.source = function(edge) {
 BaseGraph.prototype.target = function(edge) {
 	throw new Error("Graph.target(edge) must be implemented.");
 };
+
+// Optional graph interface methods ////////////////////////////////////////////////////////////////
 
 BaseGraph.prototype.edge = function(sourceVertex, targetVertex) {
 	var result = null;
@@ -1120,6 +1135,45 @@ BaseGraph.prototype.weakestLinks = function() {
 	});
 };
 
+BaseGraph.prototype.traverseDepthFirst = function(onDiscovery, onExplored, onUnexploredLoop, onExploredLoop) {
+	onDiscovery = onDiscovery || NOOP;
+	onExplored = onExplored || NOOP;
+	onUnexploredLoop = onUnexploredLoop || NOOP;
+	onExploredLoop = onExploredLoop || NOOP;
+	var graph = this;
+	var vertexData = new Map(function()  {return {};});
+	var discovered = new Set();
+	var explored = new Set();
+	var stack = [];
+
+	function discover(v) {
+		discovered.add(v);
+		onDiscovery.call(vertexData.get(v), v, stack, vertexData);
+		stack.push(v);
+
+		graph.edgesFrom(v).forEach(function(edge) {
+			var neighbouringVertex = graph.target(edge);
+			if (discovered.has(neighbouringVertex) === false) {
+				discover(neighbouringVertex);
+			} else if (explored.has(neighbouringVertex) == false) {
+				onUnexploredLoop.call(vertexData.get(v), v,  neighbouringVertex, stack, vertexData);
+			} else {
+				onExploredLoop.call(vertexData.get(v), v, neighbouringVertex, stack, vertexData);
+			}
+		});
+
+		explored.add(v);
+		stack.pop();
+		onExplored.call(vertexData.get(v), v, stack, vertexData);
+	}
+
+	graph.allVertexes().forEach(function(v) {
+		if (discovered.has(v) === false) {
+			discover(v);
+		}
+	});
+};
+
 BaseGraph.prototype.stronglyConnected = function() {
 	// by Tarjans algorithm.
 	var currentIndex = 0;
@@ -1148,16 +1202,10 @@ BaseGraph.prototype.stronglyConnected = function() {
 			}
 		}
 	}, function(vertex, alreadyDiscoveredVertex, path, vertexData) {
-		// on loop back to an unexplored but discovered
+		// on loop back to an unexplored but discovered vertex (i.e. one in this path)
 		var loopIndex = vertexData.get(alreadyDiscoveredVertex).index;
 		if (loopIndex < this.lowLink) {
 			this.lowLink = loopIndex;
-		}
-	}, function(vertex, alreadyExploredVertex, path, vertexData) {
-		// on loop back to an explored
-		var loopLow = vertexData.get(alreadyExploredVertex).lowLink;
-		if (loopLow < this.lowLink) {
-			this.lowLink = loopLow;
 		}
 	});
 
@@ -1165,45 +1213,6 @@ BaseGraph.prototype.stronglyConnected = function() {
 	var graph = this;
 	return result.map(function(connectedVertexes) {
 		return FilteredGraph.limitVertexes(graph, connectedVertexes);
-	});
-};
-
-BaseGraph.prototype.traverseDepthFirst = function(onDiscovery, onExplored, onUnexploredLoop, onExploredLoop) {
-	onDiscovery = onDiscovery || NOOP;
-	onExplored = onExplored || NOOP;
-	onUnexploredLoop = onUnexploredLoop || NOOP;
-	onExploredLoop = onExploredLoop || NOOP;
-	var graph = this;
-	var vertexData = new Map(function()  {return {};});
-	var discovered = new Set();
-	var explored = new Set();
-	var stack = [];
-
-	function discover(v) {
-		discovered.add(v);
-		onDiscovery.call(vertexData.get(v), v, stack, vertexData);
-		stack.push(v);
-
-		graph.edgesFrom(v).forEach(function(edge) {
-			var neighbouringVertex = graph.target(edge);
-			if (discovered.has(neighbouringVertex) === false) {
-				discover(neighbouringVertex);
-			} else if (explored.has(neighbouringVertex)) {
-				onUnexploredLoop.call(vertexData.get(v), v,  neighbouringVertex, stack, vertexData);
-			} else {
-				onExploredLoop.call(vertexData.get(v), v, neighbouringVertex, stack, vertexData);
-			}
-		});
-
-		explored.add(v);
-		stack.pop();
-		onExplored.call(vertexData.get(v), v, stack, vertexData);
-	}
-
-	graph.allVertexes().forEach(function(v) {
-		if (discovered.has(v) === false) {
-			discover(v);
-		}
 	});
 };
 

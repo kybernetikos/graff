@@ -108,4 +108,23 @@ describe("The .stronglyConnected method on BaseGraph", function() {
 		]);
 	});
 
+	it('gets the right thing in a complex example', function() {
+		var testGraph = new TestGraphDef([
+			"alan", "bob", "clem", "xara", "yan", "one", "two", "three", "bing"
+		],[
+			"alan->bob", "bob->clem", "clem->alan", "xara->bob", "bob->yan", "yan->xara",
+			"clem->one", "one->two", "two->three", "three->two", "one->bing", "bing->two"
+		]);
+
+		var components = testGraph.stronglyConnected();
+
+		expectComponents(components, [
+			{vertexes: ["one"], edges: []},
+			{vertexes: ["bing"], edges: []},
+			{vertexes: ["alan", "bob", "clem", "xara", "yan"],
+				edges: ["alan->bob", "bob->clem", "clem->alan", "xara->bob", "bob->yan", "yan->xara"]},
+			{vertexes: ["two", "three"], edges: ["two->three", "three->two"]}
+		]);
+	});
+
 });
