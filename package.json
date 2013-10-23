@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "topiary": "0.0.1",
-    "springy": "git://github.com/dhotson/springy.git"
+    "springy": "2.0.x"
   },
   "devDependencies": {
     "jsdoc3": "git://github.com/jsdoc3/jsdoc.git",
@@ -20,7 +20,7 @@
   "main": "./lib/main.js",
   "scripts": {
     "test": "jasmine-node --verbose specs",
-    "start": "beefy .:target/graff.js -- -s graff",
+    "start": "beefy .:target/graff.js -- -i springy -s graff",
     "doc": "jsdoc lib -d doc",
     "prepublish": "browserify -i springy -s graff . -o target/graff.js"
   }
